@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Performance Conversations – Bias Training Prototype (EN / AR)</title>
+<style>
+  @font-face{
+    font-family: "Tajawal";
+    font-style: normal;
+    font-weight: 400;
+    src: local("Tajawal");
+  }
+  :root{
+    --brand-dark:#00313C;
+    --brand-accent:#F1CEB3;
+    --brand-cream:#F0E9E0;
+    --brand-teal:#074E59;
+  }
+  *{box-sizing:border-box}
+  html[dir="rtl"] body{font-family: Tajawal, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;}
+  body{
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    margin:0;
+    color:#102A2D;
+    background:linear-gradient(180deg,var(--brand-cream),#ffffff 60%);
+  }
+  header{
+    position:sticky;top:0;z-index:10;
+    background:var(--brand-dark);
+    color:white;
+    padding:20px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  header h1{margin:0;font-size:20px;letter-spacing:.3px}
+  header .tag{background:var(--brand-accent);color:#2a2a2a;padding:6px 10px;border-radius:999px;font-weight:600;font-size:12px}
+  main{max-width:1100px;margin:20px auto;padding:0 16px 80px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+  .card{
+    background:#fff;border:1px solid #E2E8EA;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.04);
+    padding:16px;display:flex;flex-direction:column;gap:10px
+  }
+  .card h3{margin:0 0 2px 0}
+  .badge{display:inline-block;background:#EFF5F6;border:1px solid #D3E3E6;color:#0d3c40;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600}
+  .role{color:#4b6468;font-size:13px}
+  .btn{
+    appearance:none;border:none;border-radius:10px;padding:10px 12px;background:var(--brand-teal);color:#fff;
+    font-weight:600;cursor:pointer;transition:transform .02s ease, box-shadow .2s ease;box-shadow:0 2px 8px rgba(0,0,0,.15)
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.secondary{background:#ffffff;color:var(--brand-teal);border:1px solid var(--brand-teal)}
+  .panel{
+    background:#fff;border:1px solid #E2E8EA;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.06);
+    padding:20px;margin-top:16px
+  }
+  .muted{color:#5a6f73;font-size:13px}
+  .summary{white-space:pre-wrap;line-height:1.55}
+  .ratings{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:8px}
+  .rating-option{
+    border:1px solid #E2E8EA;border-radius:10px;padding:10px;display:flex;gap:10px;align-items:flex-start;background:#FAFCFD;
+  }
+  .rating-option input{margin-top:4px}
+  .rating-title{font-weight:700;margin-bottom:4px}
+  .expert{border-left:4px solid var(--brand-dark);padding-left:12px;background:linear-gradient(90deg,#F9FBFB,#ffffff);margin-top:12px}
+  html[dir="rtl"] .expert{border-left:none;border-right:4px solid var(--brand-dark);padding-right:12px;padding-left:0}
+  .callout{background: #FFF7EC;border:1px solid #FFE0B3;padding:10px;border-radius:10px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .spacer{height:8px}
+  .footerbar{
+    position:fixed;left:0;right:0;bottom:0;background:#ffffff;border-top:1px solid #E2E8EA;padding:10px 16px;
+    display:flex;align-items:center;gap:10px;justify-content:space-between
+  }
+  .scale{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{border:1px solid #d7e3e7;border-radius:8px;padding:6px 8px;background:#fff;font-size:12px}
+  .hidden{display:none}
+  .home-top{
+    display:flex;gap:16px;align-items:center;justify-content:space-between;margin:8px 0 16px 0
+  }
+  .progress{height:8px;background:#E8F0F2;border-radius:999px;overflow:hidden;flex:1}
+  .progress > div{height:100%;width:0;background:var(--brand-teal);transition:width .3s ease}
+  .pill{display:inline-block;background: #E6F3F1;color:#0d3c40;border:1px solid #c9e3df;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
+  .divider{height:1px;background:#E2E8EA;margin:12px 0}
+  /* simple RTL tweaks */
+  html[dir="rtl"] .rating-option{flex-direction:row-reverse}
+</style>
+</head>
+<body>
+  <header>
+    <div class="row">
+      <h1 id="titleH1">Let’s Talk Performance – Bias Trainer</h1>
+      <span class="tag">Floward | P&amp;C</span>
+    </div>
+    <div class="row muted">
+      <span id="subtitleSpan">Choose a scenario, read the summary, pick a rating, then compare with Expert Analysis.</span>
+    </div>
+    <div class="row">
+      <button id="langSwitch" class="btn secondary" style="font-size:13px;padding:6px 10px;">العربية</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="home">
+      <div class="home-top">
+        <div class="row" id="homePills">
+          <span class="pill" id="pillScenarios">12 Scenarios</span>
+          <span class="pill" id="pillBiases">6 Biases</span>
+          <span class="pill" id="pillRatings">Ratings with descriptors</span>
+        </div>
+        <div class="progress" title="Completion">
+          <div id="progressBar"></div>
+        </div>
+      </div>
+      <div class="grid" id="scenarioGrid"></div>
+    </section>
+
+    <section id="scenarioView" class="hidden">
+      <button class="btn secondary" id="backBtn">← Back to all scenarios</button>
+      <div class="panel">
+        <div class="row">
+          <h2 id="scTitle" style="margin:0"></h2>
+          <span id="scBadge" class="badge"></span>
+        </div>
+        <div class="muted" id="scRole"></div>
+        <div class="divider"></div>
+        <div class="summary" id="scSummary"></div>
+
+        <div class="spacer"></div>
+        <div class="callout"><strong id="pickRatingStrong">Pick a rating:</strong> <span id="pickRatingHelp">Use the 1–5 scale with 0.5 steps, guided by descriptors.</span></div>
+        <form id="ratingForm">
+          <div id="ratingOptions" class="ratings"></div>
+          <div class="spacer"></div>
+          <button type="submit" class="btn" id="submitBtn">Submit your rating</button>
+        </form>
+
+        <div id="results" class="hidden">
+          <div class="divider"></div>
+          <div class="expert">
+            <h3 style="margin:0 0 6px 0" id="expertAnalysisH3">Expert Analysis</h3>
+            <div class="row muted">
+              <div><strong id="yourRatingStrong">Your rating:</strong> <span id="yourRating"></span></div>
+              <div>•</div>
+              <div><strong id="expertRatingStrong">Expert panel rating:</strong> <span id="expertRating"></span></div>
+            </div>
+            <div class="spacer"></div>
+            <div id="expertText"></div>
+            <div class="spacer"></div>
+            <div class="callout"><strong id="biasAlertStrong">Bias Alert:</strong> <span id="biasName"></span> – <span id="biasText"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footerbar">
+    <div class="scale" id="scaleChips"></div>
+    <div class="muted" id="footerTip">Tip: Rate the whole year, focus on role outcomes, then weigh the how.</div>
+  </div>
+
+<script>
+// Language packs
+const i18n = {
+  en: {
+    headerTitle: "Let’s Talk Performance – Bias Trainer",
+    headerSubtitle: "Choose a scenario, read the summary, pick a rating, then compare with Expert Analysis.",
+    back: "← Back to all scenarios",
+    pills: { scenarios: "12 Scenarios", biases: "6 Biases", ratings: "Ratings with descriptors" },
+    pickRating: "Pick a rating:",
+    pickRatingHelp: "Use the 1–5 scale with 0.5 steps, guided by descriptors.",
+    submit: "Submit your rating",
+    expertAnalysis: "Expert Analysis",
+    yourRating: "Your rating:",
+    expertRating: "Expert panel rating:",
+    biasAlert: "Bias Alert:",
+    tip: "Tip: Rate the whole year, focus on role outcomes, then weigh the how.",
+    biasLabel: "Bias: ",
+    startScenario: "Start Scenario",
+    reviewScenario: "Review Scenario",
+    rolePrefix: "", // no prefix in EN
+    chips: [
+      [1, "Does not Meet Expectations"],
+      [1.5, "Below Expectations"],
+      [2, "Needs Improvement"],
+      [2.5, "Approaching Standards"],
+      [3, "Meets Expectations"],
+      [3.5, "Above Average"],
+      [4, "Exceeds Expectations"],
+      [4.5, "Exceptional"],
+      [5, "Outstanding Performance"]
+    ]
+  },
+  ar: {
+    headerTitle: "خلّنا نتكلّم عن الأداء – مدرّب التحيّز",
+    headerSubtitle: "اختر سيناريو، اقرأ الملخّص، حدّد التقييم، ثم قارن مع تحليل الخبراء.",
+    back: "← رجوع إلى جميع السيناريوهات",
+    pills: { scenarios: "١٢ سيناريو", biases: "٦ أنواع تحيّز", ratings: "سُلّم التقييم مع الوصاف" },
+    pickRating: "اختر التقييم:",
+    pickRatingHelp: "استخدم السُلّم من ١ إلى ٥ بنصف درجة، واستعن بالوصف لكل درجة.",
+    submit: "إرسال التقييم",
+    expertAnalysis: "تحليل الخبراء",
+    yourRating: "تقييمك:",
+    expertRating: "تقييم الخبراء:",
+    biasAlert: "تنبيه تحيّز:",
+    tip: "نصيحة: قيّم السنة كاملة، وركّز على النتائج، ثم قيّم السلوك.",
+    biasLabel: "نوع التحيّز: ",
+    startScenario: "ابدأ السيناريو",
+    reviewScenario: "مراجعة السيناريو",
+    rolePrefix: "المنصب: ",
+    chips: [
+      [1, "لا يحقق التوقعات"],
+      [1.5, "أقل من التوقعات"],
+      [2, "بحاجة إلى تحسين"],
+      [2.5, "قريب من المستوى المطلوب"],
+      [3, "يلبي التوقعات"],
+      [3.5, "فوق المتوسط"],
+      [4, "يتجاوز التوقعات"],
+      [4.5, "أداء استثنائي"],
+      [5, "أداء متميز جدًا"]
+    ]
+  }
+};
+
+// Scenarios – EN + AR localized
+const SCENARIOS = [
+  // HALO EFFECT
+  {
+    id:"halo1",
+    name:"Fahad",
+    role:"Brand Manager",
+    role_ar:"مدير علامة تجارية",
+    bias:"Halo Effect",
+    bias_ar:"تأثير الهالة",
+    summary:`Fahad is a cultural champion. He is charismatic, widely liked, and a great Floward ambassador at events. Team morale is high. However, the last two major campaigns he led missed primary ROI targets by more than 20 percent. He tends to prioritize 'buzz' over measurable results.`,
+    summary_ar:`فهد مؤثر إيجابي على الثقافة. شخصيته جذّابة ومحبوب ويمثل فلوورد بشكل ممتاز في الفعاليات، ومعنويات الفريق مرتفعة. لكن آخر حملتين قادهما سجّلتا فجوة تتجاوز ٢٠٪ عن أهداف العائد على الاستثمار. يميل إلى تفضيل "الضجة" على النتائج القابلة للقياس.`,
+    expertRating: 2,
+    expertText:`This is a classic Halo Effect risk. Strong cultural fit and charisma can mask the fact that core financial objectives are not being met. Results against agreed goals must drive the rating.`,
+    expertText_ar:`هذه حالة نموذجية لـ"تأثير الهالة". الانسجام الثقافي والكاريزما قد يخفّيان حقيقة أن الأهداف المالية الأساسية لم تتحقق. يجب أن يقود التقييمُ النتائجُ مقابل الأهداف المتفق عليها.`,
+    biasText:`Letting one positive trait create an overall glow. Do not let likeability overshadow outcome shortfalls.`,
+    biasText_ar:`ترك سِمة إيجابية واحدة تُضفي وهجًا عامًا. لا تسمح لمحبوبيّة الموظف أن تطغى على فجوات النتائج.`
+  },
+  {
+    id:"halo2",
+    name:"Mariam",
+    role:"Growth Marketing Lead",
+    role_ar:"قائدة تسويق النمو",
+    bias:"Halo Effect",
+    bias_ar:"تأثير الهالة",
+    summary:`Mariam is visible, energetic, and the first to volunteer for cross-company initiatives. She hosts townhalls and mentors interns. Yet, three product launches under her squad had QA defects that impacted conversion and required hotfixes. Budget efficiency trended below plan for two quarters.`,
+    summary_ar:`مريم بارزة وحيوية وتبادر بالتطوّع للمبادرات العابرة للإدارات، وتدير لقاءات عامة وتوجّه المتدربين. لكن ثلاث إطلاقات منتجات تحت إشراف فريقها شهدت عيوب جودة أثّرت على التحويل واحتاجت تحديثات عاجلة، وكفاءة الميزانية كانت دون الخطة لربعين متتاليين.`,
+    expertRating: 2.5,
+    expertText:`High visibility and helpfulness are valuable, but product and performance metrics matter more. The rating should reflect mixed outcomes with notable misses.`,
+    expertText_ar:`الظهور العالي وروح المساعدة قيمتان مهمتان، لكن مؤشرات المنتج والأداء أهم. يجب أن يعكس التقييم نتائج متباينة مع إخفاقات ملحوظة.`,
+    biasText:`Do not allow positive visibility to inflate performance ratings beyond the evidence.`,
+    biasText_ar:`لا تدع الظهور الإيجابي يرفع التقييم أعلى مما تدعمه الأدلة.`
+  },
+
+  // HORNS EFFECT
+  {
+    id:"horns1",
+    name:"Salma",
+    role:"Procurement Optimization Manager",
+    role_ar:"مديرة تحسين المشتريات",
+    bias:"Horns Effect",
+    bias_ar:"تأثير القرون",
+    summary:`Salma delivered an optimization model for Holland sourcing that saved over 200k USD this year. She consistently solves complex logistical challenges. However, two formal complaints cited a condescending tone in cross-team meetings.`,
+    summary_ar:`سلْمى قدّمت نموذج تحسين للتوريد من هولندا حقّق وفورات تتجاوز ٢٠٠ ألف دولار هذا العام. تحلّ باستمرار تحديات لوجستية معقدة. لكن وُجدت شكويان رسميتان بخصوص نبرة متعالية في اجتماعات بين الفرق.`,
+    expertRating: 4,
+    expertText:`A Horns Effect risk: a negative interpersonal trait can overshadow high-impact results. Maintain two truths: strong delivery plus a parallel plan to improve communication.`,
+    expertText_ar:`خطر "تأثير القرون": سِمة تواصل سلبية قد تطغى على نتائج عالية الأثر. احفظ حقيقتين معًا: إنجاز قوي مع خطة موازية لتحسين التواصل.`,
+    biasText:`One negative trait should not dominate the overall assessment when results are strong.`,
+    biasText_ar:`لا ينبغي لصفة سلبية واحدة أن تهيمن على التقييم العام عندما تكون النتائج قوية.`
+  },
+  {
+    id:"horns2",
+    name:"Youssef",
+    role:"Senior Sales Executive",
+    role_ar:"تنفيذي مبيعات أول",
+    bias:"Horns Effect",
+    bias_ar:"تأثير القرون",
+    summary:`Youssef can be blunt and does not sugarcoat updates. He exceeded annual revenue target by 18 percent, landed two enterprise B2B clients, and maintains the healthiest pipeline hygiene in the team. Two peers find his style abrasive.`,
+    summary_ar:`يوسف صريح ولا يجمّل التحديثات. تجاوز هدف الإيرادات السنوي بنسبة ١٨٪، وكسب عميلين مؤسسيين B2B، ويحافظ على أفضل انضباط للفرص في الفريق. اثنان من الزملاء يعتبران أسلوبه خشنًا.`,
+    expertRating: 4.5,
+    expertText:`Do not let communication roughness erase clear commercial impact. Recognize strong outcomes and address style through coaching in parallel.`,
+    expertText_ar:`لا تدع خشونة التواصل تمحو الأثر التجاري الواضح. اعترف بالنتائج القوية وعالج الأسلوب بالتوجيه الموازي.`,
+    biasText:`Avoid overweighting a single negative to suppress an otherwise excellent rating.`,
+    biasText_ar:`تجنّب المبالغة في سلبية واحدة بما يخفض تقييمًا ممتازًا في مجمله.`
+  },
+
+  // RECENCY BIAS
+  {
+    id:"recency1",
+    name:"Dana",
+    role:"Data Analyst",
+    role_ar:"محللة بيانات",
+    bias:"Recency Bias",
+    bias_ar:"تحيّز الحداثة",
+    summary:`For the first three quarters Dana missed routine deadlines and required close supervision. In the last weeks of Q4 she identified a critical flaw in the Mother's Day forecast, avoiding a major inventory issue. A huge save, very recent.`,
+    summary_ar:`خلال أول ثلاثة أرباع العام فاتت دانا مواعيد نهائية روتينية واحتاجت إشرافًا لصيقًا. في أسابيع الربع الرابع الأخيرة اكتشفت خللًا جوهريًا في توقعات عيد الأم، ما جنّبنا مشكلة مخزون كبيرة. إنقاذ ضخم لكنه حديث جدًا.`,
+    expertRating: 2,
+    expertText:`Celebrate the save, yet rate the whole year. Nine months of inconsistency outweigh one late-quarter win. Build a structured development plan.`,
+    expertText_ar:`احتفل بالإنقاذ، لكن قيّم السنة كاملة. تسعة أشهر من عدم الثبات تفوق مكسبًا واحدًا متأخرًا. ابنِ خطة تطوير مُحكمة.`,
+    biasText:`Do not let recent events overshadow the full performance period.`,
+    biasText_ar:`لا تدع الأحداث الأخيرة تطغى على صورة الأداء طوال الفترة.`
+  },
+  {
+    id:"recency2",
+    name:"Omar",
+    role:"Operations Shift Lead",
+    role_ar:"قائد وردية عمليات",
+    bias:"Recency Bias",
+    bias_ar:"تحيّز الحداثة",
+    summary:`Omar struggled with first-time people leadership in H1. Compliance errors and late shift handovers improved steadily. In the last six weeks, his line hit 97 percent SLA with zero safety incidents after he implemented a new pre-shift checklist.`,
+    summary_ar:`واجه عمر صعوبة في قيادة الأفراد للمرة الأولى في النصف الأول. أخطاء الالتزام وتسليم الورديات المتأخر تحسّنت تدريجيًا. في الأسابيع الستة الأخيرة حقق خطّه ٩٧٪ من اتفاقية مستوى الخدمة دون أي حوادث سلامة بعد تطبيق قائمة تفقد قبل الوردية.`,
+    expertRating: 3,
+    expertText:`The trend is positive and should be recognized, yet the full year includes a weak start. A mid-range 'Meets' with coaching on consistency is appropriate.`,
+    expertText_ar:`الاتجاه إيجابي ويستحق الإشادة، لكن السنة تشمل بداية ضعيفة. "يلبي التوقعات" مع توجيه للاستمرارية مناسب.`,
+    biasText:`Recent improvement is encouraging, but the whole-year picture matters.`,
+    biasText_ar:`التحسّن الأخير مشجّع، لكن صورة السنة كاملة هي الأهم.`
+  },
+
+  // SIMILARITY BIAS
+  {
+    id:"similarity1",
+    name:"Layla",
+    role:"Product Designer",
+    role_ar:"مصممة منتجات",
+    bias:"Similarity Bias",
+    bias_ar:"تحيّز التشابه",
+    summary:`Layla joined the team last year and quickly clicked with her manager—they studied at the same university and have similar working styles. She’s proactive in brainstorming sessions and easy to collaborate with. However, two of her designs required multiple revisions after usability testing showed confusing layouts, causing delays in launches.`,
+    summary_ar:`انضمّت ليلى للفريق العام الماضي ووجدت انسجامًا سريعًا مع مديرتها—درستا في الجامعة نفسها ولديهما أساليب عمل متشابهة. مبادرة في العصف الذهني وسلسة في التعاون. لكن اثنين من تصاميمها احتاجا تعديلات متكررة بعد أن أظهرت اختبارات القابلية للاستخدام تعقيد التخطيطات، ما سبّب تأخيرات في الإطلاق.`,
+    expertRating: 3,
+    expertText:`Similarity can inflate ratings. Performance is solid but mixed. Recognize collaboration while addressing usability misses that caused delays.`,
+    expertText_ar:`التشابه قد يرفع التقييم بلا مبرر. الأداء جيّد لكنه متباين. اعترف بروح التعاون مع معالجة عثرات القابلية للاستخدام التي سبّبت التأخير.`,
+    biasText:`Beware rating higher because the person feels familiar or 'like me'.`,
+    biasText_ar:`احذر رفع التقييم لأن الشخص "يشبهني" أو يبدو مألوفًا.`
+  },
+  {
+    id:"similarity2",
+    name:"Ahmed",
+    role:"Warehouse Inventory Analyst",
+    role_ar:"محلل جرد المستودع",
+    bias:"Similarity Bias",
+    bias_ar:"تحيّز التشابه",
+    summary:`Ahmed shares the same hometown and plays on the same football team as his manager. Cycle counts improved, yet stock variance remained above threshold in two categories and root-cause analysis reports were often late.`,
+    summary_ar:`أحمد من نفس مدينة المدير ويلعبان في فريق كرة قدم واحد. تحسّنت جردات الدورات، لكن تفاوت المخزون بقي أعلى من الحد في فئتين وغالبًا ما تأخرت تقارير تحليل السبب الجذري.`,
+    expertRating: 2.5,
+    expertText:`Friendly rapport should not drive ratings. The data shows partial progress and persistent gaps. An 'Approaching Standards' rating fits the outcomes.`,
+    expertText_ar:`الودّ لا يجب أن يقود التقييم. البيانات تُظهر تقدّمًا جزئيًا وفجوات مستمرة. "قريب من المستوى المطلوب" يتناسب مع النتائج.`,
+    biasText:`Separate personal affinity from objective evidence.`,
+    biasText_ar:`افصل الألفة الشخصية عن الأدلة الموضوعية.`
+  },
+
+  // LENIENCY / STRICTNESS
+  {
+    id:"leniency1",
+    name:"Noor",
+    role:"CX Team Lead",
+    role_ar:"قائدة فريق تجربة العملاء",
+    bias:"Leniency/Strictness Bias",
+    bias_ar:"تحيّز التساهل/التشدد",
+    summary:`Noor is warm, approachable, and her team loves working with her. She’s great at motivating people, and employee feedback is consistently positive. However, her team missed their response time targets in three peak months, and complaint resolution times were often slower than expected due to lack of follow-up tracking.`,
+    summary_ar:`نور ودودة وسهلة الوصول وفريقها يحب العمل معها. متميزة في التحفيز والتغذية الراجعة إيجابية باستمرار. لكن فريقها أخفق في تحقيق أهداف زمن الاستجابة خلال ثلاثة أشهر ذروية، وكانت أزمنة إغلاق الشكاوى أبطأ من المتوقع بسبب ضعف المتابعة.`,
+    expertRating: 2.5,
+    expertText:`Leniency risk: being overly kind because the team loves their manager. People leadership is strong, but repeated misses on response and resolution targets warrant an 'Approaching Standards' rating with a clear operations plan.`,
+    expertText_ar:`خطر التساهل: اللين الزائد لأن الفريق يحب مديرته. قيادة الأشخاص قوية، لكن تكرار الإخفاق في أهداف الاستجابة والحل يستدعي "قريب من المستوى المطلوب" مع خطة تشغيلية واضحة.`,
+    biasText:`Avoid inflating scores to be nice. Fair is kind.`,
+    biasText_ar:`تجنّب رفع الدرجات بدافع اللطف. العدل هو الحقيقي في اللطف.`
+  },
+  {
+    id:"strictness1",
+    name:"Bilal",
+    role:"Junior Backend Engineer",
+    role_ar:"مهندس خلفية مبتدئ",
+    bias:"Leniency/Strictness Bias",
+    bias_ar:"تحيّز التساهل/التشدد",
+    summary:`Bilal joined mid-year. He shipped three scoped tickets independently, raised good PR questions, and resolved two production bugs with guidance. He still needs support on system design and on-call readiness.`,
+    summary_ar:`انضم بلال منتصف العام. نفّذ ثلاث مهام محددة بنجاح بشكل مستقل، وطرح أسئلة مراجعة شيفرة جيدة، وحلّ عيبين في الإنتاج بتوجيه. ما زال يحتاج دعمًا في تصميم الأنظمة والاستعداد للمناوبة.`,
+    expertRating: 3.5,
+    expertText:`Strictness risk: being overly harsh with new joiners. Evidence shows above-average progress for level and tenure. Recognize growth while setting next-step expectations.`,
+    expertText_ar:`خطر التشدد: القسوة الزائدة مع المنضمين الجدد. الأدلة تُظهر تقدّمًا فوق المتوسط لمستواه ومدة عمله. اعترف بالنمو وحدّد توقعات الخطوة التالية.`,
+    biasText:`Do not anchor on 'not senior yet' to underrate early-career progress.`,
+    biasText_ar:`لا ترتكز على "ليس خبيرًا بعد" لتخفيض تقدّم المرحلة المبكرة.`
+  },
+
+  // ATTRIBUTION BIAS
+  {
+    id:"attribution1",
+    name:"Rana",
+    role:"Category Planner",
+    role_ar:"مخططة فئة",
+    bias:"Attribution Bias",
+    bias_ar:"تحيّز الإسناد",
+    summary:`Rana missed two cross-functional deadlines where upstream content handoffs slipped by five days. She escalated early and proposed a re-plan, yet final dates moved. Forecast accuracy hit the 95 percent goal on two seasonal lines.`,
+    summary_ar:`فاتت رنا موعدين نهائيين بين الفرق بسبب تأخر تسليم المحتوى من الجهة الموردة خمسة أيام. صعّدت مبكرًا واقترحت إعادة تخطيط، ومع ذلك تحركت التواريخ النهائية. دقّة التنبؤ بلغت ٩٥٪ في خطَّين موسميين.`,
+    expertRating: 3,
+    expertText:`Attribution bias blames the person for system constraints. Evaluate controllable actions: early escalations, replans, and delivered accuracy on owned lines.`,
+    expertText_ar:`تحيّز الإسناد يلوم الفرد على قيود النظام. قيّم الأفعال التي تحت السيطرة: التصعيد المبكر، إعادة التخطيط، والدقّة المُحقّقة في الخطوط المملوكة.`,
+    biasText:`Distinguish between personal effort and external constraints.`,
+    biasText_ar:`ميّز بين الجهد الشخصي والقيود الخارجية.`
+  },
+  {
+    id:"attribution2",
+    name:"Sami",
+    role:"Performance Marketing Specialist",
+    role_ar:"أخصائي تسويق الأداء",
+    bias:"Attribution Bias",
+    bias_ar:"تحيّز الإسناد",
+    summary:`Sami ran multiple ad campaigns this year that performed exceptionally well—overall ROI improved by 15%. A big part of this came from a drop in competitor activity, which reduced costs. But Sami also adjusted targeting mid-quarter and launched A/B tests that boosted click-through rates. Some leaders think the success was just "good timing."`,
+    summary_ar:`أدار سامي عدة حملات إعلانية هذا العام بأداء مميز—تحسن العائد الإجمالي على الاستثمار بنسبة ١٥٪. جزء كبير أتى من انخفاض نشاط المنافسين ما خفّض التكاليف. لكن سامي أيضًا عدّل الاستهداف منتصف الربع وأطلق اختبارات A/B رفعت معدل النقر. بعض القادة يرون النجاح مجرد "توقيت مناسب".`,
+    expertRating: 3.5,
+    expertText:`Do not under-credit success by attributing it only to market tailwinds. Market shifts helped, but Sami made data-driven choices that improved outcomes—worthy of an above-average rating.`,
+    expertText_ar:`لا تُنقص من قيمة النجاح بإسناده إلى رياح السوق فقط. تغيّرات السوق ساعدت، لكن سامي اتخذ قرارات مبنية على البيانات حسّنت النتائج—ويستحق تقييمًا فوق المتوسط.`,
+    biasText:`Balance situational factors with the individual’s contributions.`,
+    biasText_ar:`وازن بين العوامل الظرفية ومساهمات الفرد.`
+  }
+];
+
+let currentLang = 'en';
+
+const grid = document.getElementById('scenarioGrid');
+const scenarioView = document.getElementById('scenarioView');
+const home = document.getElementById('home');
+const progressBar = document.getElementById('progressBar');
+
+const RATING_SCALE_EN = i18n.en.chips;
+const RATING_SCALE_AR = i18n.ar.chips;
+
+let state = { completed: new Set(), current: null };
+
+function renderFooterChips(){
+  const cont = document.getElementById('scaleChips');
+  cont.innerHTML = "";
+  const scale = currentLang === 'ar' ? RATING_SCALE_AR : RATING_SCALE_EN;
+  scale.forEach(([v, label])=>{
+    const span = document.createElement('span');
+    span.className = 'chip';
+    span.innerHTML = `<strong>${v}</strong>: ${label}`;
+    cont.appendChild(span);
+  });
+}
+
+function renderHome(){
+  grid.innerHTML = "";
+  const t = i18n[currentLang];
+  document.getElementById('pillScenarios').textContent = t.pills.scenarios;
+  document.getElementById('pillBiases').textContent = t.pills.biases;
+  document.getElementById('pillRatings').textContent = t.pills.ratings;
+
+  SCENARIOS.forEach(sc => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const h3 = document.createElement('h3');
+    h3.textContent = sc.name;
+    const role = document.createElement('div');
+    role.className = 'role';
+    role.textContent = (currentLang==='ar' ? (t.rolePrefix + sc.role_ar) : sc.role);
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    const biasLabel = currentLang==='ar' ? t.biasLabel + sc.bias_ar : t.biasLabel + sc.bias;
+    badge.textContent = biasLabel;
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = state.completed.has(sc.id) ? (currentLang==='ar' ? t.reviewScenario : t.reviewScenario) : (currentLang==='ar' ? t.startScenario : t.startScenario);
+    btn.onclick = ()=> openScenario(sc.id);
+    card.appendChild(h3);
+    card.appendChild(role);
+    card.appendChild(badge);
+    card.appendChild(btn);
+    grid.appendChild(card);
+  });
+  updateProgress();
+}
+
+function openScenario(id){
+  const sc = SCENARIOS.find(s=>s.id===id);
+  state.current = sc;
+  const t = i18n[currentLang];
+  document.getElementById('scTitle').textContent = sc.name;
+  document.getElementById('scBadge').textContent = (currentLang==='ar' ? t.biasLabel + sc.bias_ar : t.biasLabel + sc.bias);
+  document.getElementById('scRole').textContent = (currentLang==='ar' ? (t.rolePrefix + sc.role_ar) : sc.role);
+  document.getElementById('scSummary').textContent = (currentLang==='ar' ? sc.summary_ar : sc.summary);
+
+  // ratings
+  const ro = document.getElementById('ratingOptions');
+  ro.innerHTML = "";
+  const scale = currentLang==='ar' ? RATING_SCALE_AR : RATING_SCALE_EN;
+  scale.forEach(([value, desc])=>{
+    const wrap = document.createElement('label');
+    wrap.className = 'rating-option';
+    const input = document.createElement('input');
+    input.type = 'radio'; input.name='rating'; input.value=String(value); input.required = true;
+    const div = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'rating-title';
+    title.textContent = `${value} – ${desc}`;
+    const text = document.createElement('div');
+    text.className = 'muted';
+    text.textContent = descriptorHint(value, currentLang);
+    div.appendChild(title); div.appendChild(text);
+    wrap.appendChild(input); wrap.appendChild(div);
+    ro.appendChild(wrap);
+  });
+
+  document.getElementById('results').classList.add('hidden');
+  home.classList.add('hidden');
+  scenarioView.classList.remove('hidden');
+  document.getElementById('ratingForm').reset();
+
+  // localize static labels inside scenario view
+  document.getElementById('pickRatingStrong').textContent = t.pickRating;
+  document.getElementById('pickRatingHelp').textContent = t.pickRatingHelp;
+  document.getElementById('submitBtn').textContent = t.submit;
+  document.getElementById('expertAnalysisH3').textContent = t.expertAnalysis;
+  document.getElementById('yourRatingStrong').textContent = t.yourRating;
+  document.getElementById('expertRatingStrong').textContent = t.expertRating;
+  document.getElementById('biasAlertStrong').textContent = t.biasAlert;
+}
+
+function descriptorHint(v, lang){
+  if(lang==='ar'){
+    if(v<=1) return "فجوات كبيرة مقابل مخرجات الدور، تحتاج تدخلًا فوريًا";
+    if(v<=1.5) return "أدنى من المطلوب في عدة مخرجات أساسية، أداء غير ثابت";
+    if(v<=2) return "إخفاقات متكررة مقابل الأهداف، يحتاج خطة تطوير منظّمة";
+    if(v<=2.5) return "قريب من المستوى المطلوب لكن غير متّسق، تحسّن جزئي";
+    if(v<=3) return "سنة مستقرة مع تباينات معتادة، لبّى معظم التوقعات";
+    if(v<=3.5) return "أعلى من المتوسط مع مساهمات مميّزة";
+    if(v<=4) return "نتائج قوية باستمرار وتتجاوز الأهداف";
+    if(v<=4.5) return "تنفيذ استثنائي وأثر تجاري واضح";
+    return "أداء متميز للغاية في النتائج والسلوكيات";
+  } else {
+    if(v<=1) return "Major gaps versus role outcomes, requires immediate intervention";
+    if(v<=1.5) return "Below bar on several core outputs, inconsistent delivery";
+    if(v<=2) return "Frequent misses against goals, needs structured plan";
+    if(v<=2.5) return "Close to standard yet uneven, improvement evident but incomplete";
+    if(v<=3) return "Solid year with typical variances, met most expectations";
+    if(v<=3.5) return "Above average delivery, some standout contributions";
+    if(v<=4) return "Consistently strong outcomes, surpasses goals";
+    if(v<=4.5) return "Exceptional execution, meaningful business impact";
+    return "Truly outstanding results and behaviors across the board";
+  }
+}
+
+document.getElementById('backBtn').onclick = ()=>{
+  scenarioView.classList.add('hidden');
+  home.classList.remove('hidden');
+};
+
+document.getElementById('ratingForm').onsubmit = (e)=>{
+  e.preventDefault();
+  const data = new FormData(e.target);
+  const your = Number(data.get('rating'));
+  const exp = state.current.expertRating;
+  const scale = currentLang==='ar' ? RATING_SCALE_AR : RATING_SCALE_EN;
+  const yourLabel = scale.find(r=>r[0]===your)[1];
+  const expLabel = scale.find(r=>r[0]===exp)[1];
+  document.getElementById('yourRating').textContent = `${your} – ${yourLabel}`;
+  document.getElementById('expertRating').textContent = `${exp} – ${expLabel}`;
+  document.getElementById('expertText').textContent = (currentLang==='ar' ? state.current.expertText_ar : state.current.expertText);
+  document.getElementById('biasName').textContent = (currentLang==='ar' ? state.current.bias_ar : state.current.bias);
+  document.getElementById('biasText').textContent = (currentLang==='ar' ? state.current.biasText_ar : state.current.biasText);
+  document.getElementById('results').classList.remove('hidden');
+  state.completed.add(state.current.id);
+  updateProgress();
+};
+
+function updateProgress(){
+  const pct = Math.round((state.completed.size / SCENARIOS.length) * 100);
+  progressBar.style.width = pct + "%";
+}
+
+// Language switcher
+document.getElementById('langSwitch').addEventListener('click', () => {
+  currentLang = currentLang === 'en' ? 'ar' : 'en';
+  applyLanguage();
+});
+
+function applyLanguage(){
+  const t = i18n[currentLang];
+  document.documentElement.dir = (currentLang==='ar') ? 'rtl' : 'ltr';
+  document.getElementById('langSwitch').textContent = (currentLang==='ar') ? 'English' : 'العربية';
+  document.getElementById('titleH1').textContent = t.headerTitle;
+  document.getElementById('subtitleSpan').textContent = t.headerSubtitle;
+  document.getElementById('backBtn').textContent = t.back;
+  document.getElementById('footerTip').textContent = t.tip;
+  renderFooterChips();
+  renderHome();
+}
+
+// initial render
+renderFooterChips();
+renderHome();
+applyLanguage(); // ensure initial i18n state
+</script>
+</body>
+</html>
